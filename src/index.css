@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,4 +99,72 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('https://cdn.jsdelivr.net/gh/JetBrains/JetBrainsMono/web/woff2/JetBrainsMono-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.terminal {
+  @apply font-mono bg-gray-900 text-gray-100 border border-gray-700 p-4 rounded-md overflow-auto;
+}
+
+.command-line {
+  @apply flex;
+}
+
+.command-prompt {
+  @apply text-green-400 mr-2;
+}
+
+.terminal-line {
+  @apply py-0.5;
+}
+
+.success {
+  @apply text-green-400;
+}
+
+.error {
+  @apply text-red-400;
+}
+
+.warning {
+  @apply text-yellow-400;
+}
+
+.info {
+  @apply text-blue-400;
+}
+
+.current-step {
+  @apply bg-gray-800 border-l-4 border-blue-500 pl-2;
+}
+
+.step-done {
+  @apply text-gray-500;
+}
+
+.blinking-cursor {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.progress-bar {
+  @apply bg-gray-700 h-2 w-full rounded-full overflow-hidden;
+}
+
+.progress-fill {
+  @apply bg-blue-500 h-full transition-all duration-300;
 }
