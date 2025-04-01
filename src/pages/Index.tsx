@@ -5,6 +5,7 @@ import TerminalLine from '@/components/TerminalLine';
 import CommandLine from '@/components/CommandLine';
 import ProgressBar from '@/components/ProgressBar';
 import PipelineVisualizer from '@/components/PipelineVisualizer';
+import PipelineSelector, { PipelineType } from '@/components/PipelineSelector';
 import FinalReport from '@/components/FinalReport';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,13 +15,13 @@ import {
   FastForward
 } from 'lucide-react';
 import { 
-  defaultPipeline, 
   getNextSteps, 
   getStepById, 
   simulateStepOutcome, 
   getRandomInt, 
   generateFailureMessage
 } from '@/lib/pipelineSimulator';
+import { getPipelineConfig } from '@/lib/pipelineConfigs';
 import { type StageStatus } from '@/components/PipelineStage';
 
 type LogEntry = {
@@ -40,14 +41,33 @@ const Index = () => {
   const [buildSuccess, setBuildSuccess] = useState(false);
   const [buildDuration, setBuildDuration] = useState(0);
   const [summaryLogs, setSummaryLogs] = useState<string[]>([]);
-  const [stageStatus, setStageStatus] = useState<Record<string, StageStatus>>({
-    build: 'pending',
-    test: 'pending',
-    deploy: 'pending'
-  });
+  const [stageStatus, setStageStatus] = useState<Record<string, StageStatus>>({});
+  const [selectedPipeline, setSelectedPipeline] = useState<PipelineType>('build-initial');
 
   const startTimeRef = useRef<number | null>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
+  
+  // Get the current pipeline configuration based on selection
+  const currentPipeline = getPipelineConfig(selectedPipeline);
+
+  // Initialize stage statuses when pipeline type changes
+  useEffect(() => {
+    const initialStageStatus: Record<string, StageStatus> = {};
+    currentPipeline.forEach(stage => {
+      initialStageStatus[stage.id] = 'pending';
+    });
+    setStageStatus(initialStageStatus);
+    
+    // Reset pipeline state when changing pipeline type
+    if (isRunning) {
+      stopPipeline();
+    }
+    setIsPipelineComplete(false);
+    setCompletedSteps({});
+    setProgress(0);
+    setLogs([]);
+    setSummaryLogs([]);
+  }, [selectedPipeline]);
 
   useEffect(() => {
     if (logsEndRef.current) {
@@ -58,14 +78,14 @@ const Index = () => {
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     
-    const totalSteps = defaultPipeline.flatMap(stage => stage.steps).length;
+    const totalSteps = currentPipeline.flatMap(stage => stage.steps).length;
     const completedStepCount = Object.keys(completedSteps).length;
     
     // Update progress
     setProgress(Math.floor((completedStepCount / totalSteps) * 100));
     
     // Update stage statuses
-    defaultPipeline.forEach(stage => {
+    currentPipeline.forEach(stage => {
       const stageSteps = stage.steps.map(s => s.id);
       const stageCompleted = stageSteps.every(stepId => completedSteps[stepId] === true);
       const stageFailed = stageSteps.some(stepId => completedSteps[stepId] === false);
@@ -81,7 +101,7 @@ const Index = () => {
     });
     
     if (isRunning && currentStep) {
-      const stepData = getStepById(defaultPipeline, currentStep);
+      const stepData = getStepById(currentPipeline, currentStep);
       
       if (stepData) {
         const { step, stage } = stepData;
@@ -148,7 +168,7 @@ const Index = () => {
             return;
           }
           
-          const nextSteps = getNextSteps(defaultPipeline, {
+          const nextSteps = getNextSteps(currentPipeline, {
             ...completedSteps,
             [step.id]: success
           });
@@ -157,7 +177,7 @@ const Index = () => {
             setCurrentStep(nextSteps[0]);
           } else {
             // Check if all steps are completed
-            const allSteps = defaultPipeline.flatMap(s => s.steps.map(step => step.id));
+            const allSteps = currentPipeline.flatMap(s => s.steps.map(step => step.id));
             const allCompleted = allSteps.every(stepId => completedSteps[stepId]);
             
             if (allCompleted) {
@@ -176,12 +196,12 @@ const Index = () => {
     return () => {
       clearTimeout(timer);
     };
-  }, [isRunning, currentStep, completedSteps, fastMode]);
+  }, [isRunning, currentStep, completedSteps, fastMode, currentPipeline]);
 
   const startPipeline = () => {
     // Reset state
     setLogs([
-      { text: 'Starting CI/CD pipeline...', type: 'info' }
+      { text: `Starting ${getPipelineName(selectedPipeline)} pipeline...`, type: 'info' }
     ]);
     setCompletedSteps({});
     setProgress(0);
@@ -189,17 +209,19 @@ const Index = () => {
     setBuildSuccess(false);
     setBuildDuration(0);
     setSummaryLogs([]);
-    setStageStatus({
-      build: 'pending',
-      test: 'pending',
-      deploy: 'pending'
+    
+    // Initialize stage statuses
+    const initialStageStatus: Record<string, StageStatus> = {};
+    currentPipeline.forEach(stage => {
+      initialStageStatus[stage.id] = 'pending';
     });
+    setStageStatus(initialStageStatus);
     
     // Start timer
     startTimeRef.current = Date.now();
     
     // Start with first available step
-    const nextSteps = getNextSteps(defaultPipeline, {});
+    const nextSteps = getNextSteps(currentPipeline, {});
     if (nextSteps.length > 0) {
       setCurrentStep(nextSteps[0]);
       setIsRunning(true);
@@ -238,10 +260,27 @@ const Index = () => {
       }
     ]);
   };
+  
+  const getPipelineName = (pipelineType: PipelineType): string => {
+    switch (pipelineType) {
+      case 'build-initial':
+        return 'Build Initial App';
+      case 'update-app':
+        return 'Update App';
+      case 'update-metadata':
+        return 'Update Metadata';
+      default:
+        return 'CI/CD';
+    }
+  };
 
-  const visualizerStages = defaultPipeline.map(stage => ({
+  const handleSelectPipeline = (value: PipelineType) => {
+    setSelectedPipeline(value);
+  };
+
+  const visualizerStages = currentPipeline.map(stage => ({
     name: stage.name,
-    status: stageStatus[stage.id]
+    status: stageStatus[stage.id] || 'pending'
   }));
 
   return (
@@ -259,9 +298,13 @@ const Index = () => {
           <div className="w-full md:w-1/4">
             <Card>
               <CardHeader>
-                <CardTitle>Pipeline Stages</CardTitle>
+                <CardTitle>Pipeline Configuration</CardTitle>
               </CardHeader>
               <CardContent>
+                <PipelineSelector 
+                  selectedPipeline={selectedPipeline}
+                  onSelectPipeline={handleSelectPipeline}
+                />
                 <PipelineVisualizer stages={visualizerStages} />
               </CardContent>
             </Card>
