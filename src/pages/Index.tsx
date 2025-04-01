@@ -43,6 +43,7 @@ const Index = () => {
   const [summaryLogs, setSummaryLogs] = useState<string[]>([]);
   const [stageStatus, setStageStatus] = useState<Record<string, StageStatus>>({});
   const [selectedPipeline, setSelectedPipeline] = useState<PipelineType>('build-initial');
+  const [pharmacyId, setPharmacyId] = useState<string>('');
 
   const startTimeRef = useRef<number | null>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
@@ -199,9 +200,17 @@ const Index = () => {
   }, [isRunning, currentStep, completedSteps, fastMode, currentPipeline]);
 
   const startPipeline = () => {
+    if (!pharmacyId.trim()) {
+      setLogs(prev => [
+        ...prev,
+        { text: 'Error: Pharmacy ID is required to run the pipeline.', type: 'error' }
+      ]);
+      return;
+    }
+
     // Reset state
     setLogs([
-      { text: `Starting ${getPipelineName(selectedPipeline)} pipeline...`, type: 'info' }
+      { text: `Starting ${getPipelineName(selectedPipeline)} pipeline for Pharmacy ID: ${pharmacyId}...`, type: 'info' }
     ]);
     setCompletedSteps({});
     setProgress(0);
@@ -278,6 +287,10 @@ const Index = () => {
     setSelectedPipeline(value);
   };
 
+  const handlePharmacyIdChange = (value: string) => {
+    setPharmacyId(value);
+  };
+
   const visualizerStages = currentPipeline.map(stage => ({
     name: stage.name,
     status: stageStatus[stage.id] || 'pending'
@@ -304,6 +317,8 @@ const Index = () => {
                 <PipelineSelector 
                   selectedPipeline={selectedPipeline}
                   onSelectPipeline={handleSelectPipeline}
+                  pharmacyId={pharmacyId}
+                  onPharmacyIdChange={handlePharmacyIdChange}
                 />
                 <PipelineVisualizer stages={visualizerStages} />
               </CardContent>
@@ -312,8 +327,9 @@ const Index = () => {
             <div className="mt-4 space-y-2">
               <Button 
                 onClick={startPipeline} 
-                disabled={isRunning || isPipelineComplete}
+                disabled={isRunning || isPipelineComplete || !pharmacyId.trim()}
                 className="w-full"
+                title={!pharmacyId.trim() ? "Pharmacy ID is required" : ""}
               >
                 <Play className="mr-2 h-4 w-4" /> 
                 Run Pipeline
