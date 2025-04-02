@@ -1,4 +1,3 @@
-
 import { BuildStage } from './pipelineSimulator';
 
 // Default pipeline for building the initial app
@@ -281,6 +280,24 @@ export const updateMetadataPipeline: BuildStage[] = [
         duration: [1000, 2000],
         successRate: 0.97,
         dependsOn: ['update-metadata']
+      }
+    ]
+  },
+  {
+    id: 'publish',
+    name: 'Update metadata',
+    steps: [
+      {
+        id: 'publish-metadata',
+        command: 'npm run publish:metadata',
+        output: [
+          'Publishing metadata changes...',
+          'Notifying systems...',
+          'Metadata published successfully.'
+        ],
+        duration: [1500, 2500],
+        successRate: 0.96,
+        dependsOn: ['verify-metadata']
       }
     ]
   }
