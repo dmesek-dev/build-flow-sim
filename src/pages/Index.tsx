@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import Terminal from '@/components/Terminal';
 import TerminalLine from '@/components/TerminalLine';
@@ -48,10 +47,8 @@ const Index = () => {
   const startTimeRef = useRef<number | null>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
   
-  // Get the current pipeline configuration based on selection
   const currentPipeline = getPipelineConfig(selectedPipeline);
 
-  // Initialize stage statuses when pipeline type changes
   useEffect(() => {
     const initialStageStatus: Record<string, StageStatus> = {};
     currentPipeline.forEach(stage => {
@@ -59,7 +56,6 @@ const Index = () => {
     });
     setStageStatus(initialStageStatus);
     
-    // Reset pipeline state when changing pipeline type
     if (isRunning) {
       stopPipeline();
     }
@@ -82,10 +78,8 @@ const Index = () => {
     const totalSteps = currentPipeline.flatMap(stage => stage.steps).length;
     const completedStepCount = Object.keys(completedSteps).length;
     
-    // Update progress
     setProgress(Math.floor((completedStepCount / totalSteps) * 100));
     
-    // Update stage statuses
     currentPipeline.forEach(stage => {
       const stageSteps = stage.steps.map(s => s.id);
       const stageCompleted = stageSteps.every(stepId => completedSteps[stepId] === true);
@@ -107,19 +101,16 @@ const Index = () => {
       if (stepData) {
         const { step, stage } = stepData;
         
-        // Add command to logs
         setLogs(prev => [
           ...prev, 
           { text: step.command, type: 'default', command: true }
         ]);
         
-        // Add output with delay
         const duration = fastMode 
           ? 500 
           : getRandomInt(step.duration[0], step.duration[1]);
         
         timer = setTimeout(() => {
-          // Add output lines
           step.output.forEach((line, i) => {
             setLogs(prev => [
               ...prev, 
@@ -127,7 +118,6 @@ const Index = () => {
             ]);
           });
           
-          // Determine success/failure
           const success = simulateStepOutcome(step.successRate);
           
           if (success) {
@@ -163,7 +153,6 @@ const Index = () => {
               [step.id]: false
             }));
             
-            // Stop pipeline on failure
             setIsRunning(false);
             completePipeline(false);
             return;
@@ -177,7 +166,6 @@ const Index = () => {
           if (nextSteps.length > 0) {
             setCurrentStep(nextSteps[0]);
           } else {
-            // Check if all steps are completed
             const allSteps = currentPipeline.flatMap(s => s.steps.map(step => step.id));
             const allCompleted = allSteps.every(stepId => completedSteps[stepId]);
             
@@ -185,7 +173,6 @@ const Index = () => {
               setIsRunning(false);
               completePipeline(true);
             } else {
-              // Some steps are not reachable (e.g., dependency failed)
               setIsRunning(false);
               completePipeline(false);
             }
@@ -208,7 +195,6 @@ const Index = () => {
       return;
     }
 
-    // Reset state
     setLogs([
       { text: `Starting ${getPipelineName(selectedPipeline)} pipeline for Pharmacy ID: ${pharmacyId}...`, type: 'info' }
     ]);
@@ -219,17 +205,14 @@ const Index = () => {
     setBuildDuration(0);
     setSummaryLogs([]);
     
-    // Initialize stage statuses
     const initialStageStatus: Record<string, StageStatus> = {};
     currentPipeline.forEach(stage => {
       initialStageStatus[stage.id] = 'pending';
     });
     setStageStatus(initialStageStatus);
     
-    // Start timer
     startTimeRef.current = Date.now();
     
-    // Start with first available step
     const nextSteps = getNextSteps(currentPipeline, {});
     if (nextSteps.length > 0) {
       setCurrentStep(nextSteps[0]);
@@ -300,14 +283,10 @@ const Index = () => {
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight">CI/CD Pipeline Simulator</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Visualize and simulate CI/CD pipeline execution
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">Pharmacy Apps Build Tool</h1>
         </div>
 
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Left side: Pipeline visualization */}
           <div className="w-full md:w-1/4">
             <Card>
               <CardHeader>
@@ -368,7 +347,6 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Right side: Terminal or Report */}
           <div className="w-full md:w-3/4">
             {!isPipelineComplete ? (
               <Card className="h-[70vh] flex flex-col">
