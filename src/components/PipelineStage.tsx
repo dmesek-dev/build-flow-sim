@@ -51,7 +51,7 @@ const PipelineStage: React.FC<PipelineStageProps> = ({
   };
 
   return (
-    <div className={cn('flex flex-col items-center', className)}>
+    <div className={cn('flex items-center', className)}>
       <div className="flex items-center">
         <div className={cn(
           'flex items-center justify-center w-10 h-10 rounded-full border-2',
@@ -63,7 +63,7 @@ const PipelineStage: React.FC<PipelineStageProps> = ({
       </div>
       {index < totalStages - 1 && (
         <div className={cn(
-          'h-8 w-0.5 my-1',
+          'absolute left-[25px] w-0.5 h-8',
           status === 'pending' ? 'bg-gray-400' : 
           status === 'running' ? 'bg-blue-400' : 
           status === 'success' ? 'bg-green-400' : 
