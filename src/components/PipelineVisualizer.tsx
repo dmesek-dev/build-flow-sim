@@ -13,8 +13,8 @@ type PipelineVisualizerProps = {
 
 const PipelineVisualizer: React.FC<PipelineVisualizerProps> = ({ stages }) => {
   return (
-    <div className="flex flex-col items-center py-4 relative">
-      <div className="flex flex-col items-start relative">
+    <div className="flex flex-col items-center py-6">
+      <div className="flex flex-col items-center">
         {stages.map((stage, index) => (
           <PipelineStage
             key={stage.name}
@@ -22,7 +22,6 @@ const PipelineVisualizer: React.FC<PipelineVisualizerProps> = ({ stages }) => {
             status={stage.status}
             index={index}
             totalStages={stages.length}
-            className="relative"
           />
         ))}
       </div>
