@@ -1,6 +1,8 @@
 
 import React from 'react';
-import PipelineStage, { StageStatus } from './PipelineStage';
+import { Card, CardContent } from '@/components/ui/card';
+import { type StageStatus } from './PipelineStage';
+import { getPipelineSummary } from '@/lib/pipelineConfigs';
 
 export type PipelineStageConfig = {
   name: string;
@@ -9,22 +11,20 @@ export type PipelineStageConfig = {
 
 type PipelineVisualizerProps = {
   stages: PipelineStageConfig[];
+  pipelineType: string;
 };
 
-const PipelineVisualizer: React.FC<PipelineVisualizerProps> = ({ stages }) => {
+const PipelineVisualizer: React.FC<PipelineVisualizerProps> = ({ stages, pipelineType }) => {
+  const summary = getPipelineSummary(pipelineType);
+  
   return (
-    <div className="flex flex-col items-center py-4">
-      <div className="flex flex-col space-y-2">
-        {stages.map((stage, index) => (
-          <PipelineStage
-            key={stage.name}
-            name={stage.name}
-            status={stage.status}
-            index={index}
-            totalStages={stages.length}
-          />
-        ))}
-      </div>
+    <div className="w-full py-4">
+      <Card className="mt-4">
+        <CardContent className="pt-4">
+          <h3 className="text-sm font-semibold mb-2">Pipeline Summary</h3>
+          <p className="text-sm text-gray-500">{summary}</p>
+        </CardContent>
+      </Card>
     </div>
   );
 };

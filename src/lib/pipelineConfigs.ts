@@ -298,3 +298,16 @@ export const getPipelineConfig = (pipelineType: string) => {
       return buildInitialPipeline;
   }
 };
+
+export const getPipelineSummary = (pipelineType: string): string => {
+  switch (pipelineType) {
+    case 'build-initial':
+      return 'Builds and deploys the initial version of a pharmacy app. Includes installing dependencies, running tests, and deploying to staging and production environments.';
+    case 'update-app':
+      return 'Updates an existing pharmacy app with new features or bug fixes. Includes getting latest changes, testing only modified components, and deploying to staging and production.';
+    case 'update-metadata':
+      return 'Updates pharmacy app metadata like store hours, contact info, and services offered without rebuilding the entire app. Validates changes before publishing.';
+    default:
+      return 'Runs a complete CI/CD pipeline to build, test, and deploy the pharmacy app.';
+  }
+};

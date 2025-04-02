@@ -1,8 +1,8 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Terminal from '@/components/Terminal';
-import TerminalLine from '@/components/TerminalLine';
-import CommandLine from '@/components/CommandLine';
+import PipelineStage from '@/components/PipelineStage';
 import ProgressBar from '@/components/ProgressBar';
 import PipelineVisualizer from '@/components/PipelineVisualizer';
 import PipelineSelector, { PipelineType } from '@/components/PipelineSelector';
@@ -25,14 +25,13 @@ import {
 import { getPipelineConfig } from '@/lib/pipelineConfigs';
 import { type StageStatus } from '@/components/PipelineStage';
 
-type LogEntry = {
-  text: string;
-  type: 'default' | 'info' | 'success' | 'error' | 'warning';
-  command?: boolean;
+type BuildStep = {
+  name: string;
+  status: StageStatus;
 };
 
 const Index = () => {
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [buildSteps, setBuildSteps] = useState<BuildStep[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
   const [currentStep, setCurrentStep] = useState<string | null>(null);
@@ -64,7 +63,7 @@ const Index = () => {
     setIsPipelineComplete(false);
     setCompletedSteps({});
     setProgress(0);
-    setLogs([]);
+    setBuildSteps([]);
     setSummaryLogs([]);
   }, [selectedPipeline]);
 
@@ -72,7 +71,7 @@ const Index = () => {
     if (logsEndRef.current) {
       logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [logs]);
+  }, [buildSteps]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -103,9 +102,10 @@ const Index = () => {
       if (stepData) {
         const { step, stage } = stepData;
         
-        setLogs(prev => [
+        // Add step to build steps display
+        setBuildSteps(prev => [
           ...prev, 
-          { text: step.command, type: 'default', command: true }
+          { name: step.command, status: 'running' }
         ]);
         
         const duration = fastMode 
@@ -113,20 +113,17 @@ const Index = () => {
           : getRandomInt(step.duration[0], step.duration[1]);
         
         timer = setTimeout(() => {
-          step.output.forEach((line, i) => {
-            setLogs(prev => [
-              ...prev, 
-              { text: line, type: 'info' }
-            ]);
-          });
-          
           const success = simulateStepOutcome(step.successRate);
           
           if (success) {
-            setLogs(prev => [
-              ...prev, 
-              { text: `✓ ${step.command} completed successfully`, type: 'success' }
-            ]);
+            // Update step status to success
+            setBuildSteps(prev => 
+              prev.map(buildStep => 
+                buildStep.name === step.command 
+                  ? { ...buildStep, status: 'success' } 
+                  : buildStep
+              )
+            );
             
             setSummaryLogs(prev => [
               ...prev,
@@ -138,12 +135,16 @@ const Index = () => {
               [step.id]: true
             }));
           } else {
-            const errorMsg = generateFailureMessage(stage.name, step.id);
+            // Update step status to failed
+            setBuildSteps(prev => 
+              prev.map(buildStep => 
+                buildStep.name === step.command 
+                  ? { ...buildStep, status: 'failed' } 
+                  : buildStep
+              )
+            );
             
-            setLogs(prev => [
-              ...prev, 
-              { text: `✗ ${errorMsg}`, type: 'error' }
-            ]);
+            const errorMsg = generateFailureMessage(stage.name, step.id);
             
             setSummaryLogs(prev => [
               ...prev,
@@ -190,15 +191,14 @@ const Index = () => {
 
   const startPipeline = () => {
     if (!pharmacyId.trim()) {
-      setLogs(prev => [
-        ...prev,
-        { text: 'Error: Pharmacy ID is required to run the pipeline.', type: 'error' }
+      setBuildSteps([
+        { name: 'Error: Pharmacy ID is required to run the pipeline.', status: 'failed' }
       ]);
       return;
     }
 
-    setLogs([
-      { text: `Starting ${getPipelineName(selectedPipeline)} pipeline for Pharmacy ID: ${pharmacyId}...`, type: 'info' }
+    setBuildSteps([
+      { name: `Starting pipeline for Pharmacy ID: ${pharmacyId}...`, status: 'pending' }
     ]);
     setCompletedSteps({});
     setProgress(0);
@@ -224,9 +224,9 @@ const Index = () => {
 
   const stopPipeline = () => {
     setIsRunning(false);
-    setLogs(prev => [
+    setBuildSteps(prev => [
       ...prev, 
-      { text: 'Pipeline execution manually stopped.', type: 'warning' }
+      { name: 'Pipeline execution manually stopped.', status: 'failed' }
     ]);
     completePipeline(false);
   };
@@ -244,28 +244,15 @@ const Index = () => {
     setIsPipelineComplete(true);
     setBuildSuccess(success);
     
-    setLogs(prev => [
+    setBuildSteps(prev => [
       ...prev, 
       { 
-        text: success 
+        name: success 
           ? 'Pipeline completed successfully! 🎉' 
           : 'Pipeline failed. See errors above.', 
-        type: success ? 'success' : 'error' 
+        status: success ? 'success' : 'failed' 
       }
     ]);
-  };
-  
-  const getPipelineName = (pipelineType: PipelineType): string => {
-    switch (pipelineType) {
-      case 'build-initial':
-        return 'Build Initial App';
-      case 'update-app':
-        return 'Update App';
-      case 'update-metadata':
-        return 'Update Metadata';
-      default:
-        return 'CI/CD';
-    }
   };
 
   const handleSelectPipeline = (value: PipelineType) => {
@@ -307,7 +294,10 @@ const Index = () => {
                   pharmacyId={pharmacyId}
                   onPharmacyIdChange={handlePharmacyIdChange}
                 />
-                <PipelineVisualizer stages={visualizerStages} />
+                <PipelineVisualizer 
+                  stages={visualizerStages} 
+                  pipelineType={selectedPipeline}
+                />
               </CardContent>
             </Card>
             
@@ -364,19 +354,12 @@ const Index = () => {
                 <CardContent className="flex-grow overflow-hidden">
                   <Terminal className="h-full p-4">
                     <div className="h-full overflow-auto">
-                      {logs.map((log, i) => (
-                        <div key={i}>
-                          {log.command ? (
-                            <CommandLine command={log.text} />
-                          ) : (
-                            <TerminalLine 
-                              type={log.type}
-                              current={i === logs.length - 1}
-                            >
-                              {log.text}
-                            </TerminalLine>
-                          )}
-                        </div>
+                      {buildSteps.map((step, i) => (
+                        <PipelineStage
+                          key={i}
+                          name={step.name}
+                          status={step.status}
+                        />
                       ))}
                       {isRunning && (
                         <span className="text-gray-300 blinking-cursor">_</span>
