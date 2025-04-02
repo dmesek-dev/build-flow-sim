@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import Terminal from '@/components/Terminal';
 import TerminalLine from '@/components/TerminalLine';
 import CommandLine from '@/components/CommandLine';
@@ -11,7 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Play, 
   StopCircle,
-  FastForward
+  FastForward,
+  History
 } from 'lucide-react';
 import { 
   getNextSteps, 
@@ -282,8 +284,14 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="text-center">
+        <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold tracking-tight">Pharmacy Apps Build Tool</h1>
+          <Button variant="outline" asChild>
+            <Link to="/build-history">
+              <History className="mr-2 h-4 w-4" />
+              Build History
+            </Link>
+          </Button>
         </div>
 
         <div className="flex flex-col md:flex-row gap-6">
