@@ -8,15 +8,16 @@ import { PipelineType } from '@/components/PipelineSelector';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/integrations/supabase/types';
 
 type BuildRecord = {
   id: string;
   timestamp: string;
-  pipeline_type: PipelineType;
+  pipeline_type: string; // Changed from PipelineType to string
   pharmacy_id: string;
   success: boolean;
   duration: number; // in seconds
-  logs: string[];
+  logs: Json; // Updated to match Supabase Json type
 };
 
 const formatDate = (dateStr: string): string => {
@@ -36,7 +37,7 @@ const formatDuration = (seconds: number): string => {
   return `${minutes}m ${remainingSeconds}s`;
 };
 
-const getPipelineName = (pipelineType: PipelineType): string => {
+const getPipelineName = (pipelineType: string): string => {
   switch (pipelineType) {
     case 'build-initial':
       return 'Build Initial App';
@@ -68,7 +69,7 @@ const BuildHistory: React.FC = () => {
           throw error;
         }
         
-        setBuilds(data || []);
+        setBuilds(data as BuildRecord[] || []);
       } catch (err) {
         console.error('Error fetching build history:', err);
         setError('Failed to load build history. Please try again later.');
@@ -135,7 +136,7 @@ const BuildHistory: React.FC = () => {
                             <XCircle className="w-5 h-5" />
                           )}
                         </div>
-                        <CardTitle className="text-lg">{getPipelineName(build.pipeline_type as PipelineType)}</CardTitle>
+                        <CardTitle className="text-lg">{getPipelineName(build.pipeline_type)}</CardTitle>
                         <span className="text-sm text-gray-500">Pharmacy ID: {build.pharmacy_id}</span>
                       </div>
                       <div className="flex items-center text-sm text-gray-500">
