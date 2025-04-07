@@ -1,21 +1,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { ChevronLeft, CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 
+// Updated type definition to match the data returned from Supabase
 type BuildRecord = {
   id: string;
   timestamp: string;
-  pipeline_type: string; // Changed from PipelineType to string
+  pipeline_type: string;
   pharmacy_id: string;
   success: boolean;
   duration: number; // in seconds
-  logs: Json; // Updated to match Supabase Json type
+  logs: Json; // Using the Json type from Supabase types
 };
 
 const formatDate = (dateStr: string): string => {
