@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Terminal from '@/components/Terminal';
@@ -191,13 +192,21 @@ const Index = () => {
     if (!pharmacyId.trim()) return;
     
     try {
-      await supabase.from('build_history').insert({
+      const buildData = {
         pipeline_type: selectedPipeline,
         pharmacy_id: pharmacyId,
         success: success,
         duration: buildDuration,
         logs: summaryLogs
-      });
+      };
+      
+      const { error } = await supabase
+        .from('build_history')
+        .insert(buildData);
+      
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: "Build history saved",

@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 type BuildRecord = {
   id: string;
-  timestamp: Date;
+  timestamp: string;
   pipeline_type: PipelineType;
   pharmacy_id: string;
   success: boolean;
@@ -135,7 +135,7 @@ const BuildHistory: React.FC = () => {
                             <XCircle className="w-5 h-5" />
                           )}
                         </div>
-                        <CardTitle className="text-lg">{getPipelineName(build.pipeline_type)}</CardTitle>
+                        <CardTitle className="text-lg">{getPipelineName(build.pipeline_type as PipelineType)}</CardTitle>
                         <span className="text-sm text-gray-500">Pharmacy ID: {build.pharmacy_id}</span>
                       </div>
                       <div className="flex items-center text-sm text-gray-500">
