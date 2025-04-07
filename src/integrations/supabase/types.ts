@@ -9,7 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      build_history: {
+        Row: {
+          duration: number
+          id: string
+          logs: Json
+          pharmacy_id: string
+          pipeline_type: string
+          success: boolean
+          timestamp: string
+        }
+        Insert: {
+          duration: number
+          id?: string
+          logs: Json
+          pharmacy_id: string
+          pipeline_type: string
+          success: boolean
+          timestamp?: string
+        }
+        Update: {
+          duration?: number
+          id?: string
+          logs?: Json
+          pharmacy_id?: string
+          pipeline_type?: string
+          success?: boolean
+          timestamp?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

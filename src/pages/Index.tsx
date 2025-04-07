@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Terminal from '@/components/Terminal';
@@ -24,6 +23,8 @@ import {
 } from '@/lib/pipelineSimulator';
 import { getPipelineConfig } from '@/lib/pipelineConfigs';
 import { type StageStatus } from '@/components/PipelineStage';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 type BuildStep = {
   name: string;
@@ -102,7 +103,6 @@ const Index = () => {
       if (stepData) {
         const { step, stage } = stepData;
         
-        // Add step to build steps display
         setBuildSteps(prev => [
           ...prev, 
           { name: step.command, status: 'running' }
@@ -116,7 +116,6 @@ const Index = () => {
           const success = simulateStepOutcome(step.successRate);
           
           if (success) {
-            // Update step status to success
             setBuildSteps(prev => 
               prev.map(buildStep => 
                 buildStep.name === step.command 
@@ -135,7 +134,6 @@ const Index = () => {
               [step.id]: true
             }));
           } else {
-            // Update step status to failed
             setBuildSteps(prev => 
               prev.map(buildStep => 
                 buildStep.name === step.command 
@@ -188,6 +186,32 @@ const Index = () => {
       clearTimeout(timer);
     };
   }, [isRunning, currentStep, completedSteps, fastMode, currentPipeline]);
+
+  const saveBuildHistory = async (success: boolean) => {
+    if (!pharmacyId.trim()) return;
+    
+    try {
+      await supabase.from('build_history').insert({
+        pipeline_type: selectedPipeline,
+        pharmacy_id: pharmacyId,
+        success: success,
+        duration: buildDuration,
+        logs: summaryLogs
+      });
+      
+      toast({
+        title: "Build history saved",
+        description: "Build information has been stored successfully",
+      });
+    } catch (error) {
+      console.error('Error saving build history:', error);
+      toast({
+        title: "Failed to save build history",
+        description: "There was an error storing the build information",
+        variant: "destructive",
+      });
+    }
+  };
 
   const startPipeline = () => {
     if (!pharmacyId.trim()) {
@@ -253,6 +277,8 @@ const Index = () => {
         status: success ? 'success' : 'failed' 
       }
     ]);
+    
+    saveBuildHistory(success);
   };
 
   const handleSelectPipeline = (value: PipelineType) => {
