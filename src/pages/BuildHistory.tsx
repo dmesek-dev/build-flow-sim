@@ -1,13 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronLeft, CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
-import { Json } from '@/integrations/supabase/types';
 
-// Updated type definition to match the data returned from Supabase
 type BuildRecord = {
   id: string;
   timestamp: string;
@@ -15,8 +12,73 @@ type BuildRecord = {
   pharmacy_id: string;
   success: boolean;
   duration: number; // in seconds
-  logs: Json; // Using the Json type from Supabase types
+  logs: string[] | Record<string, any> | null;
 };
+
+// Mock data for build history
+const mockBuilds: BuildRecord[] = [
+  {
+    id: "1",
+    timestamp: "2025-04-05T10:30:00Z",
+    pipeline_type: "build-initial",
+    pharmacy_id: "pharm-123",
+    success: true,
+    duration: 145,
+    logs: [
+      "Starting build process...",
+      "Initializing environment...",
+      "Installing dependencies...",
+      "Compiling source code...",
+      "Running tests...",
+      "Build completed successfully!"
+    ]
+  },
+  {
+    id: "2",
+    timestamp: "2025-04-04T14:15:00Z",
+    pipeline_type: "update-app",
+    pharmacy_id: "pharm-456",
+    success: false,
+    duration: 78,
+    logs: [
+      "Starting update process...",
+      "Pulling latest changes...",
+      "Installing dependencies...",
+      "Error: Failed to compile bundle",
+      "Build failed with exit code 1"
+    ]
+  },
+  {
+    id: "3",
+    timestamp: "2025-04-03T09:45:00Z",
+    pipeline_type: "update-metadata",
+    pharmacy_id: "pharm-789",
+    success: true,
+    duration: 52,
+    logs: [
+      "Starting metadata update...",
+      "Updating app configuration...",
+      "Generating new assets...",
+      "Update completed successfully!"
+    ]
+  },
+  {
+    id: "4",
+    timestamp: "2025-04-02T16:20:00Z",
+    pipeline_type: "build-initial",
+    pharmacy_id: "pharm-123",
+    success: true,
+    duration: 190,
+    logs: [
+      "Starting build process...",
+      "Setting up environment...",
+      "Installing dependencies...",
+      "Building application...",
+      "Running tests...",
+      "Build completed successfully!"
+    ]
+  }
+];
 
 const formatDate = (dateStr: string): string => {
   const date = new Date(dateStr);
@@ -49,42 +111,16 @@ const getPipelineName = (pipelineType: string): string => {
 };
 
 const BuildHistory: React.FC = () => {
-  const [builds, setBuilds] = useState<BuildRecord[]>([]);
+  const [builds] = useState<BuildRecord[]>(mockBuilds);
   const [expandedBuildId, setExpandedBuildId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchBuildHistory = async () => {
-      try {
-        setIsLoading(true);
-        const { data, error } = await supabase
-          .from('build_history')
-          .select('*')
-          .order('timestamp', { ascending: false });
-          
-        if (error) {
-          throw error;
-        }
-        
-        setBuilds(data as BuildRecord[] || []);
-      } catch (err) {
-        console.error('Error fetching build history:', err);
-        setError('Failed to load build history. Please try again later.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchBuildHistory();
-  }, []);
+  const [isLoading] = useState<boolean>(false);
 
   const toggleExpand = (buildId: string) => {
     setExpandedBuildId(expandedBuildId === buildId ? null : buildId);
   };
 
   // Helper function to render logs properly
-  const renderLogs = (logs: Json): React.ReactNode => {
+  const renderLogs = (logs: string[] | Record<string, any> | null): React.ReactNode => {
     if (Array.isArray(logs)) {
       return logs.map((log, index) => (
         <li key={index} className="mb-1">{String(log)}</li>
@@ -102,12 +138,6 @@ const BuildHistory: React.FC = () => {
           <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
           <p>Loading build history...</p>
         </div>
-      ) : error ? (
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center text-destructive">{error}</div>
-          </CardContent>
-        </Card>
       ) : builds.length === 0 ? (
         <Card>
           <CardContent className="p-6">
