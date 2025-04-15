@@ -269,6 +269,16 @@ const SingleAppView: React.FC = () => {
     }
   };
 
+  const stopPipeline = () => {
+    setIsRunning(false);
+    setBuildSteps(prev => [
+      ...prev, 
+      { name: 'Pipeline execution manually stopped.', status: 'failed' }
+    ]);
+    completePipeline(false);
+    buildChannelManager.broadcast({ type: 'build-stopped' });
+  };
+
   const toggleFastMode = () => {
     setFastMode(prev => !prev);
   };
