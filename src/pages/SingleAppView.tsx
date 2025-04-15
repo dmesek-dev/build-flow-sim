@@ -23,6 +23,7 @@ import { getPipelineConfig } from '@/lib/pipelineConfigs';
 import { type StageStatus } from '@/components/PipelineStage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useSharedBuildState } from '@/hooks/useSharedBuildState';
 
 type BuildStep = {
   name: string;
@@ -43,6 +44,12 @@ const SingleAppView: React.FC = () => {
   const [stageStatus, setStageStatus] = useState<Record<string, StageStatus>>({});
   const [selectedPipeline, setSelectedPipeline] = useState<PipelineType>('build-initial');
   const [pharmacyId, setPharmacyId] = useState<string>('');
+  const [isExternalBuildRunning, buildChannelManager] = useSharedBuildState(isRunning, () => {
+    toast({
+      title: "Build in Progress",
+      description: "Another build is currently running in a different tab.",
+    });
+  });
 
   const startTimeRef = useRef<number | null>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
@@ -220,6 +227,15 @@ const SingleAppView: React.FC = () => {
   };
 
   const startPipeline = () => {
+    if (isExternalBuildRunning) {
+      toast({
+        title: "Build in Progress",
+        description: "Another build is currently running in a different tab.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!pharmacyId.trim()) {
       setBuildSteps([
         { name: 'Error: Pharmacy ID is required to run the pipeline.', status: 'failed' }
@@ -259,6 +275,7 @@ const SingleAppView: React.FC = () => {
       { name: 'Pipeline execution manually stopped.', status: 'failed' }
     ]);
     completePipeline(false);
+    buildChannelManager.broadcast({ type: 'build-stopped' });
   };
 
   const toggleFastMode = () => {
@@ -285,6 +302,7 @@ const SingleAppView: React.FC = () => {
     ]);
     
     saveBuildHistory(success);
+    buildChannelManager.broadcast({ type: 'build-completed' });
   };
 
   const handleSelectPipeline = (value: PipelineType) => {
@@ -328,9 +346,15 @@ const SingleAppView: React.FC = () => {
           <div className="mt-4 space-y-2">
             <Button 
               onClick={startPipeline} 
-              disabled={isRunning || isPipelineComplete || !pharmacyId.trim()}
+              disabled={isRunning || isPipelineComplete || !pharmacyId.trim() || isExternalBuildRunning}
               className="w-full"
-              title={!pharmacyId.trim() ? "Pharmacy ID is required" : ""}
+              title={
+                isExternalBuildRunning 
+                  ? "Another build is currently running" 
+                  : !pharmacyId.trim() 
+                    ? "Pharmacy ID is required" 
+                    : ""
+              }
             >
               <Play className="mr-2 h-4 w-4" /> 
               Run Pipeline

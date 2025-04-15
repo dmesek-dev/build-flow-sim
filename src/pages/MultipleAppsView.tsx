@@ -23,6 +23,7 @@ import { getPipelineConfig } from '@/lib/pipelineConfigs';
 import { type StageStatus } from '@/components/PipelineStage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useSharedBuildState } from '@/hooks/useSharedBuildState';
 
 type BuildStep = {
   name: string;
@@ -48,6 +49,13 @@ const MultipleAppsView: React.FC = () => {
   const logsEndRef = useRef<HTMLDivElement>(null);
   
   const currentPipeline = getPipelineConfig(selectedPipeline);
+
+  const { isExternalBuildRunning } = useSharedBuildState(isRunning, () => {
+    toast({
+      title: "Build in Progress",
+      description: "Another build is currently running in a different tab.",
+    });
+  });
 
   useEffect(() => {
     const initialStageStatus: Record<string, StageStatus> = {};
@@ -194,6 +202,15 @@ const MultipleAppsView: React.FC = () => {
   };
 
   const startPipeline = () => {
+    if (isExternalBuildRunning) {
+      toast({
+        title: "Build in Progress",
+        description: "Another build is currently running in a different tab.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!pharmacyIds.trim()) {
       setBuildSteps([
         { name: 'Error: Pharmacy IDs are required to run the pipeline.', status: 'failed' }
@@ -252,6 +269,7 @@ const MultipleAppsView: React.FC = () => {
       { name: 'Pipeline execution manually stopped.', status: 'failed' }
     ]);
     completePipeline(false);
+    buildChannelManager.broadcast({ type: 'build-stopped' });
   };
 
   const toggleFastMode = () => {
@@ -348,9 +366,15 @@ const MultipleAppsView: React.FC = () => {
           <div className="mt-4 space-y-2">
             <Button 
               onClick={startPipeline} 
-              disabled={isRunning || isPipelineComplete || !pharmacyIds.trim()}
+              disabled={isRunning || isPipelineComplete || !pharmacyIds.trim() || isExternalBuildRunning}
               className="w-full"
-              title={!pharmacyIds.trim() ? "Pharmacy IDs are required" : ""}
+              title={
+                isExternalBuildRunning 
+                  ? "Another build is currently running" 
+                  : !pharmacyIds.trim() 
+                    ? "Pharmacy IDs are required" 
+                    : ""
+              }
             >
               <Play className="mr-2 h-4 w-4" /> 
               Run Batch Pipeline
