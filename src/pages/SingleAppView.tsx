@@ -44,7 +44,8 @@ const SingleAppView: React.FC = () => {
   const [stageStatus, setStageStatus] = useState<Record<string, StageStatus>>({});
   const [selectedPipeline, setSelectedPipeline] = useState<PipelineType>('build-initial');
   const [pharmacyId, setPharmacyId] = useState<string>('');
-  const [isExternalBuildRunning, buildChannelManager] = useSharedBuildState(isRunning, () => {
+  
+  const { isExternalBuildRunning, buildChannelManager } = useSharedBuildState(isRunning, () => {
     toast({
       title: "Build in Progress",
       description: "Another build is currently running in a different tab.",
@@ -266,16 +267,6 @@ const SingleAppView: React.FC = () => {
       setCurrentStep(nextSteps[0]);
       setIsRunning(true);
     }
-  };
-
-  const stopPipeline = () => {
-    setIsRunning(false);
-    setBuildSteps(prev => [
-      ...prev, 
-      { name: 'Pipeline execution manually stopped.', status: 'failed' }
-    ]);
-    completePipeline(false);
-    buildChannelManager.broadcast({ type: 'build-stopped' });
   };
 
   const toggleFastMode = () => {

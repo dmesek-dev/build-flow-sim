@@ -32,7 +32,9 @@ export const useSharedBuildState = (localIsRunning: boolean, onExternalBuildStar
     };
   }, [localIsRunning, onExternalBuildStarted]);
 
+  // Return object instead of array
   return {
     isExternalBuildRunning,
+    buildChannelManager
   };
 };

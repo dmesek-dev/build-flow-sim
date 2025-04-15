@@ -50,7 +50,7 @@ const MultipleAppsView: React.FC = () => {
   
   const currentPipeline = getPipelineConfig(selectedPipeline);
 
-  const { isExternalBuildRunning } = useSharedBuildState(isRunning, () => {
+  const { isExternalBuildRunning, buildChannelManager } = useSharedBuildState(isRunning, () => {
     toast({
       title: "Build in Progress",
       description: "Another build is currently running in a different tab.",
