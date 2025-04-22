@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +9,10 @@ import SingleAppView from "./pages/SingleAppView";
 import MultipleAppsView from "./pages/MultipleAppsView";
 import BuildHistory from "./pages/BuildHistory";
 import PharmacyConfig from "./pages/PharmacyConfig";
+import DummyAndroid from "./pages/DummyAndroid";
+import CheckIOS from "./pages/CheckIOS";
+import NormalizeIcon from "./pages/NormalizeIcon";
+import VersionViewer from "./pages/VersionViewer";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +52,38 @@ const App = () => (
             element={
               <LayoutWithSidebar>
                 <PharmacyConfig />
+              </LayoutWithSidebar>
+            } 
+          />
+          <Route 
+            path="/dummy-android" 
+            element={
+              <LayoutWithSidebar>
+                <DummyAndroid />
+              </LayoutWithSidebar>
+            } 
+          />
+          <Route 
+            path="/check-ios" 
+            element={
+              <LayoutWithSidebar>
+                <CheckIOS />
+              </LayoutWithSidebar>
+            } 
+          />
+          <Route 
+            path="/normalize-icon" 
+            element={
+              <LayoutWithSidebar>
+                <NormalizeIcon />
+              </LayoutWithSidebar>
+            } 
+          />
+          <Route 
+            path="/version-viewer" 
+            element={
+              <LayoutWithSidebar>
+                <VersionViewer />
               </LayoutWithSidebar>
             } 
           />
