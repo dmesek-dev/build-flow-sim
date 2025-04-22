@@ -9,6 +9,7 @@ import LayoutWithSidebar from "./components/Layout/LayoutWithSidebar";
 import SingleAppView from "./pages/SingleAppView";
 import MultipleAppsView from "./pages/MultipleAppsView";
 import BuildHistory from "./pages/BuildHistory";
+import PharmacyConfig from "./pages/PharmacyConfig";
 
 const queryClient = new QueryClient();
 
@@ -43,7 +44,14 @@ const App = () => (
               </LayoutWithSidebar>
             } 
           />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route 
+            path="/pharmacy-config" 
+            element={
+              <LayoutWithSidebar>
+                <PharmacyConfig />
+              </LayoutWithSidebar>
+            } 
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -11,7 +11,7 @@ import {
   SidebarHeader
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-import { BoxSelect, History, Smartphone } from 'lucide-react';
+import { BoxSelect, History, Smartphone, TextCursor } from 'lucide-react';
 
 interface LayoutWithSidebarProps {
   children: React.ReactNode;
@@ -35,6 +35,11 @@ const LayoutWithSidebar: React.FC<LayoutWithSidebarProps> = ({ children }) => {
       title: 'Build History',
       path: '/build-history',
       icon: History,
+    },
+    {
+      title: 'Pharmacy Config',
+      path: '/pharmacy-config',
+      icon: TextCursor,
     },
   ];
 
