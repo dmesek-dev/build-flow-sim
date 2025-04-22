@@ -10,7 +10,8 @@ import {
   SidebarMenuItem,
   SidebarHeader
 } from '@/components/ui/sidebar';
-import { BoxSelect, History, Smartphone, TextCursor, Android, Apple, Resize, Report } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { BoxSelect, History, Smartphone, TextCursor } from 'lucide-react';
 
 interface LayoutWithSidebarProps {
   children: React.ReactNode;
@@ -39,26 +40,6 @@ const LayoutWithSidebar: React.FC<LayoutWithSidebarProps> = ({ children }) => {
       title: 'Pharmacy Config',
       path: '/pharmacy-config',
       icon: TextCursor,
-    },
-    {
-      title: 'Dummy Android AAB',
-      path: '/dummy-android',
-      icon: Android,
-    },
-    {
-      title: 'Check iOS Certificates',
-      path: '/ios-check',
-      icon: Apple,
-    },
-    {
-      title: 'Normalize Icon',
-      path: '/icon-normalizer',
-      icon: Resize,
-    },
-    {
-      title: 'Version Viewer',
-      path: '/version-viewer',
-      icon: Report,
     },
   ];
 

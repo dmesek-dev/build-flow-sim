@@ -10,10 +10,6 @@ import SingleAppView from "./pages/SingleAppView";
 import MultipleAppsView from "./pages/MultipleAppsView";
 import BuildHistory from "./pages/BuildHistory";
 import PharmacyConfig from "./pages/PharmacyConfig";
-import DummyAndroid from "./pages/DummyAndroid";
-import IosCheck from "./pages/IosCheck";
-import IconNormalizer from "./pages/IconNormalizer";
-import VersionViewer from "./pages/VersionViewer";
 
 const queryClient = new QueryClient();
 
@@ -24,14 +20,38 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LayoutWithSidebar><SingleAppView /></LayoutWithSidebar>} />
-          <Route path="/multiple-apps" element={<LayoutWithSidebar><MultipleAppsView /></LayoutWithSidebar>} />
-          <Route path="/build-history" element={<LayoutWithSidebar><BuildHistory /></LayoutWithSidebar>} />
-          <Route path="/pharmacy-config" element={<LayoutWithSidebar><PharmacyConfig /></LayoutWithSidebar>} />
-          <Route path="/dummy-android" element={<LayoutWithSidebar><DummyAndroid /></LayoutWithSidebar>} />
-          <Route path="/ios-check" element={<LayoutWithSidebar><IosCheck /></LayoutWithSidebar>} />
-          <Route path="/icon-normalizer" element={<LayoutWithSidebar><IconNormalizer /></LayoutWithSidebar>} />
-          <Route path="/version-viewer" element={<LayoutWithSidebar><VersionViewer /></LayoutWithSidebar>} />
+          <Route 
+            path="/" 
+            element={
+              <LayoutWithSidebar>
+                <SingleAppView />
+              </LayoutWithSidebar>
+            } 
+          />
+          <Route 
+            path="/multiple-apps" 
+            element={
+              <LayoutWithSidebar>
+                <MultipleAppsView />
+              </LayoutWithSidebar>
+            } 
+          />
+          <Route 
+            path="/build-history" 
+            element={
+              <LayoutWithSidebar>
+                <BuildHistory />
+              </LayoutWithSidebar>
+            } 
+          />
+          <Route 
+            path="/pharmacy-config" 
+            element={
+              <LayoutWithSidebar>
+                <PharmacyConfig />
+              </LayoutWithSidebar>
+            } 
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
